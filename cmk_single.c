@@ -11,6 +11,7 @@
 #include <string.h>
 #include <math.h>
 #include "cmk_math.h"
+#include "cmk_mesh.h"
 
 /*------------------------ Basic types ------------------------*/
 typedef uint32_t u32;
@@ -18,49 +19,8 @@ typedef uint32_t u32;
 /*------------------------ Math utils -------------------------*/
 /* ย้ายไปอยู่ใน cmk_math.{h,c} แล้ว - ส่วนนี้คงเหลือไว้เพื่อรวมผ่าน header เท่านั้น */
 
-/*------------------------ Tiny dynamic arrays ----------------*/
-typedef struct { vec3* data; size_t len, cap; } vec3v;
-typedef struct { u32*  data; size_t len, cap; } u32v;
-
-static void vec3v_free(vec3v* a){ free(a->data); a->data=NULL; a->len=a->cap=0; }
-static void u32v_free(u32v* a){ free(a->data); a->data=NULL; a->len=a->cap=0; }
-
-static void* _reserve(void* p,size_t* cap,size_t elemsz,size_t need){
-    size_t c=*cap; if (need<=c) return p;
-    size_t nc = c? c*2: 64; if (nc<need) nc=need;
-    void* np = realloc(p, nc*elemsz); if(!np){ fprintf(stderr,"OOM\n"); exit(1); }
-    *cap=nc; return np;
-}
-static void vec3v_push(vec3v* a, vec3 v){
-    a->data = (vec3*)_reserve(a->data,&a->cap,sizeof(vec3),a->len+1);
-    a->data[a->len++]=v;
-}
-static void u32v_push(u32v* a, u32 v){
-    a->data = (u32*) _reserve(a->data,&a->cap,sizeof(u32), a->len+1);
-    a->data[a->len++]=v;
-}
-
-/*------------------------ Mesh structure ---------------------*/
-typedef struct {
-    vec3v verts;   /* array of unique vertices */
-    u32v  tris;    /* flat list of indices: [i0,i1,i2, i0,i1,i2, ...] */
-} Mesh;
-
-static void mesh_init(Mesh* m){ memset(m,0,sizeof(*m)); }
-static void mesh_free(Mesh* m){ vec3v_free(&m->verts); u32v_free(&m->tris); }
-
-static u32  mesh_add_vertex(Mesh* m, vec3 p){ vec3v_push(&m->verts,p); return (u32)(m->verts.len-1); }
-static void mesh_add_tri(Mesh* m, u32 a,u32 b,u32 c){
-    u32v_push(&m->tris,a); u32v_push(&m->tris,b); u32v_push(&m->tris,c);
-}
-static void mesh_transform(Mesh* m, mat4 T){
-    for(size_t i=0;i<m->verts.len;i++) m->verts.data[i] = m4_mul_point(T, m->verts.data[i]);
-}
-static void mesh_merge(Mesh* dst, const Mesh* src){
-    u32 base = (u32)dst->verts.len;
-    for(size_t i=0;i<src->verts.len;i++) vec3v_push(&dst->verts, src->verts.data[i]);
-    for(size_t i=0;i<src->tris.len;i++)   u32v_push(&dst->tris, src->tris.data[i]+base);
-}
+/*------------------------ Mesh utils -------------------------*/
+/* ย้ายไปอยู่ใน cmk_mesh.{h,c} แล้ว - รวมผ่าน header เท่านั้น */
 
 /*------------------------ Primitives -------------------------*/
 /* Create axis-aligned box centered at origin with size (sx,sy,sz) */
