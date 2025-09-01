@@ -13,6 +13,12 @@
 #ifndef CMK_MATH_H
 #define CMK_MATH_H
 
+/* นำเข้า math.h และกำหนดค่าคงที่ M_PI หากยังไม่มี (เช่นบน MSVC/GCC เก่า) */
+#include <math.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 /* โครงสร้างข้อมูลพื้นฐาน */
 typedef struct { double x, y, z; } vec3;
 typedef struct { double m[16]; } mat4; /* เมทริกซ์ 4x4 จัดเก็บแบบคอลัมน์เมเจอร์ */
@@ -36,4 +42,3 @@ mat4 m4_mul(mat4 A, mat4 B);
 vec3 m4_mul_point(mat4 M, vec3 p);
 
 #endif /* CMK_MATH_H */
-
