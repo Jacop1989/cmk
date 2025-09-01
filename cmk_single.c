@@ -13,6 +13,7 @@
 #include "cmk_math.h"
 #include "cmk_mesh.h"
 #include "cmk_prims.h"
+#include "cmk_stl.h"
 
 /*------------------------ Basic types ------------------------*/
 typedef uint32_t u32;
@@ -26,31 +27,8 @@ typedef uint32_t u32;
 /*------------------------ Primitives -------------------------*/
 /* ย้ายไปอยู่ใน cmk_prims.{h,c} แล้ว - รวมผ่าน header เท่านั้น */
 
-/*------------------------ STL (binary) writer ----------------*/
-static void write_f32(FILE* f, float v){ fwrite(&v,4,1,f); }
-static void write_u16(FILE* f, uint16_t v){ fwrite(&v,2,1,f); }
-static int mesh_write_stl_binary(const char* path, const Mesh* m){
-    if (m->tris.len%3!=0){ fprintf(stderr,"[STL] Triangle index not multiple of 3\n"); return 0; }
-    FILE* f=fopen(path,"wb"); if(!f){ perror("fopen"); return 0; }
-    /* 80-byte header */
-    char hdr[80]; memset(hdr,0,sizeof(hdr)); snprintf(hdr,80,"CMK v0.1");
-    fwrite(hdr,1,80,f);
-    uint32_t tri_count=(uint32_t)(m->tris.len/3);
-    fwrite(&tri_count,4,1,f);
-    for(size_t t=0;t<m->tris.len;t+=3){
-        u32 i0=m->tris.data[t], i1=m->tris.data[t+1], i2=m->tris.data[t+2];
-        vec3 a=m->verts.data[i0], b=m->verts.data[i1], c=m->verts.data[i2];
-        vec3 n=v3_norm(v3_cross(v3_sub(b,a), v3_sub(c,a)));
-        /* normal then vertices as float32, then attr (0) */
-        write_f32(f,(float)n.x); write_f32(f,(float)n.y); write_f32(f,(float)n.z);
-        write_f32(f,(float)a.x); write_f32(f,(float)a.y); write_f32(f,(float)a.z);
-        write_f32(f,(float)b.x); write_f32(f,(float)b.y); write_f32(f,(float)b.z);
-        write_f32(f,(float)c.x); write_f32(f,(float)c.y); write_f32(f,(float)c.z);
-        write_u16(f,0);
-    }
-    fclose(f);
-    return 1;
-}
+/*------------------------ STL writer -------------------------*/
+/* ย้ายไปอยู่ใน cmk_stl.{h,c} แล้ว - รวมผ่าน header เท่านั้น */
 
 /*------------------------ OBJ (text) writer ------------------*/
 /*
