@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* รีเนม main ของเดโมก่อน include เพื่อไม่ให้ชนกับ main ของเทสต์ */
 #define main cmk_demo_main_renamed
@@ -70,11 +71,40 @@ static void test_stl_export(void){
     remove(path); /* ทำความสะอาดไฟล์ทดสอบ */
 }
 
+static void test_obj_export(void){
+    const char* path = "test_box.obj";
+    remove(path);
+
+    Mesh m = make_box(10.0, 10.0, 10.0);
+    int ok = mesh_write_obj(path, &m);
+    assert(ok == 1);
+
+    long sz = file_size(path);
+    assert(sz > 0);
+
+    /* นับจำนวนบรรทัดขึ้นต้นด้วย 'v ' และ 'f ' ให้ตรงกับเมชของกล่อง */
+    int vcnt = 0, fcnt = 0;
+    FILE* f = fopen(path, "r");
+    assert(f != NULL);
+    char buf[512];
+    while (fgets(buf, sizeof(buf), f)){
+        if (strncmp(buf, "v ", 2) == 0) vcnt++;
+        else if (strncmp(buf, "f ", 2) == 0) fcnt++;
+    }
+    fclose(f);
+
+    assert(vcnt == 8);   /* กล่องมีจุดยอด 8 จุด */
+    assert(fcnt == 12);  /* กล่องมีสามเหลี่ยม 12 หน้า */
+
+    mesh_free(&m);
+    remove(path);
+}
+
 int main(void){
     test_make_box();
     test_make_cylinder();
     test_stl_export();
+    test_obj_export();
     printf("All CMK tests passed.\n");
     return 0;
 }
-
