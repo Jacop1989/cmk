@@ -14,6 +14,7 @@
 #include "cmk_mesh.h"
 #include "cmk_prims.h"
 #include "cmk_stl.h"
+#include "cmk_obj.h"
 
 /*------------------------ Basic types ------------------------*/
 typedef uint32_t u32;
@@ -30,43 +31,8 @@ typedef uint32_t u32;
 /*------------------------ STL writer -------------------------*/
 /* ย้ายไปอยู่ใน cmk_stl.{h,c} แล้ว - รวมผ่าน header เท่านั้น */
 
-/*------------------------ OBJ (text) writer ------------------*/
-/*
-   mesh_write_obj(path, m)
-   - บันทึก Mesh เป็นไฟล์ Wavefront OBJ (ข้อความ)
-   - เขียนจุดยอดด้วยรูปแบบ:  v x y z
-   - เขียนหน้า (สามเหลี่ยม) ด้วยรูปแบบ: f i j k (index เริ่มที่ 1 ตามสเปก OBJ)
-   - ไม่เขียน normal/material/uv เพื่อลดความซับซ้อน (สามารถเพิ่มได้ในอนาคต)
-*/
-static int mesh_write_obj(const char* path, const Mesh* m){
-    if (!m){ fprintf(stderr, "[OBJ] null mesh\n"); return 0; }
-    if (m->tris.len % 3 != 0){
-        fprintf(stderr, "[OBJ] Triangle index not multiple of 3\n");
-        return 0;
-    }
-    FILE* f = fopen(path, "w");
-    if (!f){ perror("fopen"); return 0; }
-
-    /* ส่วนหัวคอมเมนต์เพื่อบอกที่มา */
-    fprintf(f, "# CMK (C Minimal Kernel) v0.1 OBJ export\n");
-
-    /* เขียนจุดยอดทั้งหมด (ใช้ความแม่นยำแบบ %.9g เพื่อให้ไฟล์กระทัดรัด) */
-    for (size_t i=0; i<m->verts.len; i++){
-        vec3 p = m->verts.data[i];
-        fprintf(f, "v %.9g %.9g %.9g\n", p.x, p.y, p.z);
-    }
-
-    /* เขียนหน้าเป็นสามเหลี่ยม โดย index ใน OBJ เริ่มที่ 1 */
-    for (size_t t=0; t<m->tris.len; t+=3){
-        u32 i0 = m->tris.data[t]   + 1;
-        u32 i1 = m->tris.data[t+1] + 1;
-        u32 i2 = m->tris.data[t+2] + 1;
-        fprintf(f, "f %u %u %u\n", i0, i1, i2);
-    }
-
-    fclose(f);
-    return 1;
-}
+/*------------------------ OBJ writer -------------------------*/
+/* ย้ายไปอยู่ใน cmk_obj.{h,c} แล้ว - รวมผ่าน header เท่านั้น */
 
 /*------------------------ Demo / smoke test ------------------*/
 static void demo_generate(){
