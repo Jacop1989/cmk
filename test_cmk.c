@@ -12,7 +12,7 @@
    - หากคอมไพล์ด้วย MSVC ให้กำหนด `/D_USE_MATH_DEFINES` ตาม README เพื่อรองรับ M_PI
 
    วิธีคอมไพล์ (ตัวอย่าง):
-     gcc -O2 -std=c11 test_cmk.c cmk_math.c cmk_mesh.c -o test_cmk -lm
+     gcc -O2 -std=c11 test_cmk.c cmk_math.c cmk_mesh.c cmk_prims.c -o test_cmk -lm
      ./test_cmk
 */
 
@@ -108,5 +108,6 @@ int main(void){
     printf("All CMK tests passed.\n");
     return 0;
 }
+
 
 

@@ -5,7 +5,7 @@ CFLAGS  := -O2 -std=c11
 LDLIBS  := -lm
 
 TARGET  := cmk_demo
-SRC     := cmk_single.c cmk_math.c cmk_mesh.c
+SRC     := cmk_single.c cmk_math.c cmk_mesh.c cmk_prims.c
 OBJ     := $(SRC:.c=.o)
 
 .PHONY: all clean

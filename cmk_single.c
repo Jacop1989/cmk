@@ -12,6 +12,7 @@
 #include <math.h>
 #include "cmk_math.h"
 #include "cmk_mesh.h"
+#include "cmk_prims.h"
 
 /*------------------------ Basic types ------------------------*/
 typedef uint32_t u32;
@@ -23,70 +24,7 @@ typedef uint32_t u32;
 /* ย้ายไปอยู่ใน cmk_mesh.{h,c} แล้ว - รวมผ่าน header เท่านั้น */
 
 /*------------------------ Primitives -------------------------*/
-/* Create axis-aligned box centered at origin with size (sx,sy,sz) */
-static Mesh make_box(double sx,double sy,double sz){
-    Mesh m; mesh_init(&m);
-    double x=sx*0.5, y=sy*0.5, z=sz*0.5;
-    /* 8 corners */
-    u32 v000=mesh_add_vertex(&m,v3(-x,-y,-z));
-    u32 v100=mesh_add_vertex(&m,v3( x,-y,-z));
-    u32 v110=mesh_add_vertex(&m,v3( x, y,-z));
-    u32 v010=mesh_add_vertex(&m,v3(-x, y,-z));
-    u32 v001=mesh_add_vertex(&m,v3(-x,-y, z));
-    u32 v101=mesh_add_vertex(&m,v3( x,-y, z));
-    u32 v111=mesh_add_vertex(&m,v3( x, y, z));
-    u32 v011=mesh_add_vertex(&m,v3(-x, y, z));
-    /* 12 triangles (CCW outward) */
-    /* -Z bottom */
-    mesh_add_tri(&m, v000,v100,v110); mesh_add_tri(&m, v000,v110,v010);
-    /* +Z top */
-    mesh_add_tri(&m, v001,v111,v101); mesh_add_tri(&m, v001,v011,v111);
-    /* -Y front */
-    mesh_add_tri(&m, v000,v101,v100); mesh_add_tri(&m, v000,v001,v101);
-    /* +Y back */
-    mesh_add_tri(&m, v010,v110,v111); mesh_add_tri(&m, v010,v111,v011);
-    /* -X left */
-    mesh_add_tri(&m, v000,v010,v011); mesh_add_tri(&m, v000,v011,v001);
-    /* +X right */
-    mesh_add_tri(&m, v100,v101,v111); mesh_add_tri(&m, v100,v111,v110);
-    return m;
-}
-
-/* Approx cylinder along Z axis, centered at origin */
-static Mesh make_cylinder(double radius,double height, int segments){
-    if (segments<8) segments=8;
-    Mesh m; mesh_init(&m);
-    double hz = height*0.5;
-    /* ring vertices */
-    u32* bot = (u32*)malloc(sizeof(u32)*segments);
-    u32* top = (u32*)malloc(sizeof(u32)*segments);
-    for(int i=0;i<segments;i++){
-        double a = (2.0*M_PI*i)/segments;
-        double cx = radius*cos(a), cy = radius*sin(a);
-        bot[i]=mesh_add_vertex(&m, v3(cx,cy,-hz));
-        top[i]=mesh_add_vertex(&m, v3(cx,cy, hz));
-    }
-    /* centers for caps */
-    u32 cbot = mesh_add_vertex(&m, v3(0,0,-hz));
-    u32 ctop = mesh_add_vertex(&m, v3(0,0, hz));
-    /* sides */
-    for(int i=0;i<segments;i++){
-        int j=(i+1)%segments;
-        /* quad (bot[i], bot[j], top[j], top[i]) -> two tris, CCW outward */
-        mesh_add_tri(&m, bot[i], bot[j], top[j]);
-        mesh_add_tri(&m, bot[i], top[j], top[i]);
-    }
-    /* caps (fans) */
-    for(int i=0;i<segments;i++){
-        int j=(i+1)%segments;
-        /* bottom: CCW seen from outside (-Z cap means clockwise in XY, so flip) */
-        mesh_add_tri(&m, cbot, bot[j], bot[i]);
-        /* top: CCW in XY */
-        mesh_add_tri(&m, ctop, top[i], top[j]);
-    }
-    free(bot); free(top);
-    return m;
-}
+/* ย้ายไปอยู่ใน cmk_prims.{h,c} แล้ว - รวมผ่าน header เท่านั้น */
 
 /*------------------------ STL (binary) writer ----------------*/
 static void write_f32(FILE* f, float v){ fwrite(&v,4,1,f); }
